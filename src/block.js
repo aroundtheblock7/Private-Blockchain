@@ -18,7 +18,7 @@ class Block {
     constructor(data) {
         this.hash = null;                                           // Hash of the block
         this.height = 0;                                            // Block Height (consecutive number of each block)
-        this.body = Buffer(JSON.stringify(data)).toString('hex');   // Will contain the transactions stored in the block, by default it will encode the data
+        this.body = Buffer.from(JSON.stringify(data)).toString('hex');   // Will contain the transactions stored in the block, by default it will encode the data
         this.time = 0;                                              // Timestamp for the Block creation
         this.previousBlockHash = null;                              // Reference to the previous Block Hash
     }
@@ -39,27 +39,25 @@ class Block {
         let self = this;
         return new Promise((resolve, reject) => {
             // Save in auxiliary variable the current block hash
-            const tempHash = self.hash;
-            self.hash = "";
+            let _hash = SHA256(JSON.stringify({ ...self, hash: null })).toString();
             // Recalculate the hash of the Block
-            const encryptedHash = SHA256(JSON.stringify(tempHash)).toString()
-            self.hash = encryptedHash;
             // Comparing if the hashes changed
             // Returning the Block is not valid
+            resolve(self.hash === _hash)
             // Returning the Block is valid
-            resolve(tempHash === encryptedHash);
+
         });
     }
 
     /**
-     *  Auxiliary Method to return the block body (decoding the data)
-     *  Steps:
-     *  
-     *  1. Use hex2ascii module to decode the data
-     *  2. Because data is a javascript object use JSON.parse(string) to get the Javascript Object
-     *  3. Resolve with the data and make sure that you don't need to return the data for the `genesis block` 
-     *     or Reject with an error.
-     */
+    *  Auxiliary Method to return the block body (decoding the data)
+    *  Steps:
+    *  
+    *  1. Use hex2ascii module to decode the data
+    *  2. Because data is a javascript object use JSON.parse(string) to get the Javascript Object
+    *  3. Resolve with the data and make sure that you don't need to return the data for the `genesis block` 
+    *     or Reject with an error.
+    */
     getBData() {
         // Getting the encoded data saved in the Block
         // Decoding the data to retrieve the JSON representation of the object
